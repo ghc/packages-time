@@ -14,6 +14,7 @@ import Test.Calendar.Week
 import Test.Clock.Conversion
 import Test.Clock.Resolution
 import Test.Clock.TAI
+import Test.Clock.LeapSeconds
 import Test.Format.Format
 import Test.Format.ParseTime
 import Test.Format.ISO8601
@@ -39,7 +40,8 @@ tests = testGroup "Time" [
     testGroup "Clock" [
         testClockConversion,
         testResolutions,
-        testTAI
+        testTAI,
+        testLeapSeconds
         ],
     testGroup "Format" [
         testFormat,

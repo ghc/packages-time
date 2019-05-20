@@ -60,6 +60,7 @@ library
         Data.Time.Clock.System,
         Data.Time.Clock.POSIX,
         Data.Time.Clock.TAI,
+        Data.Time.Clock.LeapSeconds,
         Data.Time.LocalTime,
         Data.Time.Format,
         Data.Time.Format.Internal,
@@ -160,6 +161,7 @@ test-suite test-main
         Test.Clock.Conversion
         Test.Clock.Resolution
         Test.Clock.TAI
+        Test.Clock.LeapSeconds
         Test.Format.Format
         Test.Format.ParseTime
         Test.Format.ISO8601
