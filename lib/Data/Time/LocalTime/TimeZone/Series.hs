@@ -3,48 +3,47 @@
 -- | A @TimeZoneSeries@ describes a timezone by specifying the various
 -- clock settings that occurred in the past and are scheduled to occur
 -- in the future for the timezone.
-
 module Data.Time.LocalTime.TimeZone.Series
-(
+    (
   -- * Representing a timezone
   -- $abouttzs
-  TimeZoneSeries(..),
-  timeZoneFromSeries,
-  isValidLocalTime,
-  isRedundantLocalTime,
-  latestNonSummer,
-
+      TimeZoneSeries(..)
+    , timeZoneFromSeries
+    , isValidLocalTime
+    , isRedundantLocalTime
+    , latestNonSummer
   -- ** Converting between UTC and local time
   -- $aboutfuncs
-  utcToLocalTime',
-  localTimeToUTC',
-
+    , utcToLocalTime'
+    , localTimeToUTC'
   -- * Representing a moment in a timezone
-  ZoneSeriesTime(..),
-  zonedTimeToZoneSeriesTime,
-  zoneSeriesTimeToLocalTime,
-  zoneSeriesTimeZone,
-  localTimeToZoneSeriesTime
-)
-where
+    , ZoneSeriesTime(..)
+    , zonedTimeToZoneSeriesTime
+    , zoneSeriesTimeToLocalTime
+    , zoneSeriesTimeZone
+    , localTimeToZoneSeriesTime
+    ) where
 
-import Data.Time (UTCTime, LocalTime, TimeZone(timeZoneSummerOnly),
-                  ZonedTime(ZonedTime),
-                  utcToLocalTime, localTimeToUTC)
-import Data.Time.Format.Internal (FormatTime(formatCharacter), ParseTime(..))
-import Data.List (partition)
-import Data.Maybe (listToMaybe, fromMaybe)
-import Data.Typeable (Typeable)
 import Control.Arrow (first)
 import Control.DeepSeq (NFData(..))
-
+import Data.List (partition)
+import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Time
+    ( LocalTime
+    , TimeZone(timeZoneSummerOnly)
+    , UTCTime
+    , ZonedTime(ZonedTime)
+    , localTimeToUTC
+    , utcToLocalTime
+    )
+import Data.Time.Format.Internal
+import Data.Typeable (Typeable)
 
 mapBuiltTime :: Functor f => (a -> b) -> f a -> f b
 mapBuiltTime = fmap
 
 mapFormatCharacter :: (a -> b) -> Maybe (x -> b -> String) -> Maybe (x -> a -> String)
 mapFormatCharacter f = fmap (\g x -> g x . f)
-
 
 -- $abouttzs
 -- A @TimeZoneSeries@ describes a timezone with a set of 'TimeZone'
@@ -60,7 +59,6 @@ mapFormatCharacter f = fmap (\g x -> g x . f)
 -- other file) for the local timezone, and files located in
 -- \/usr\/share\/zoneinfo\/ or \/etc\/zoneinfo\/ (or some other
 -- directory) for other timezones.
-
 -- | A @TimeZoneSeries@ consists of a default @TimeZone@ object and a
 -- sequence of pairs of a @UTCTime@ and a @TimeZone@ object. Each
 -- @UTCTime@ indicates a moment at which the clocks changed, and the
@@ -70,49 +68,44 @@ mapFormatCharacter f = fmap (\g x -> g x . f)
 -- is empty. The times in the sequence are in order from latest to
 -- earlist (note that this is the opposite of the way that they are
 -- stored in an Olson timezone file).
-data TimeZoneSeries =
-       TimeZoneSeries {
-         tzsTimeZone ::    TimeZone,
+data TimeZoneSeries = TimeZoneSeries
+    { tzsTimeZone :: TimeZone
                              -- ^ The default timezone state
-         tzsTransitions :: [(UTCTime, TimeZone)]
+    , tzsTransitions :: [(UTCTime, TimeZone)]
                              -- ^ A list of pairs of the time of a
                              -- change of clocks and the new timezone
                              -- state after the change
-    }
-  deriving (Eq, Ord, Typeable)
+    } deriving (Eq, Ord, Typeable)
 
 instance Show TimeZoneSeries where
-  show = show . latestNonSummer
+    show = show . latestNonSummer
 
 instance Read TimeZoneSeries where
     readsPrec n = map (first $ flip TimeZoneSeries []) . readsPrec n
 
 instance NFData TimeZoneSeries where
-  rnf tzs = rnf (tzsTimeZone tzs, tzsTransitions tzs)
+    rnf tzs = rnf (tzsTimeZone tzs, tzsTransitions tzs)
 
 instance ParseTime TimeZoneSeries where
-  substituteTimeSpecifier _ = timeSubstituteTimeSpecifier
-  parseTimeSpecifier _ = timeParseTimeSpecifier
-  buildTime locale = mapBuiltTime (flip TimeZoneSeries []) . buildTime locale
+    substituteTimeSpecifier _ = timeSubstituteTimeSpecifier
+    parseTimeSpecifier _ = timeParseTimeSpecifier
+    buildTime locale = mapBuiltTime (flip TimeZoneSeries []) . buildTime locale
 
 -- | The latest non-summer @TimeZone@ in a @TimeZoneSeries@ is in some
 -- sense representative of the timezone.
 latestNonSummer :: TimeZoneSeries -> TimeZone
-latestNonSummer (TimeZoneSeries d cs) = fromMaybe d . listToMaybe $
-    filter (not . timeZoneSummerOnly) tzs ++ tzs
+latestNonSummer (TimeZoneSeries d cs) = fromMaybe d . listToMaybe $ filter (not . timeZoneSummerOnly) tzs ++ tzs
   where
     tzs = map snd cs
 
 instance FormatTime TimeZoneSeries where
-  formatCharacter =
-    fmap (mapFormatCharacter latestNonSummer) .
-    formatCharacter
+    formatCharacter = fmap (mapFormatCharacter latestNonSummer) . formatCharacter
 
 -- | Given a timezone represented by a @TimeZoneSeries@, and a @UTCTime@,
 -- provide the state of the timezone's clocks at that time.
 timeZoneFromSeries :: TimeZoneSeries -> UTCTime -> TimeZone
-timeZoneFromSeries (TimeZoneSeries dfault changes) t = fromMaybe dfault .
-  fmap snd . listToMaybe . dropWhile ((> t) . fst) $ changes
+timeZoneFromSeries (TimeZoneSeries dfault changes) t =
+    fromMaybe dfault . fmap snd . listToMaybe . dropWhile ((> t) . fst) $ changes
 
 -- The following functions attempt to deal correctly with corner cases
 -- where multiple clock changes overlap with each other, even though
@@ -127,7 +120,6 @@ timeZoneFromSeries (TimeZoneSeries dfault changes) t = fromMaybe dfault .
 -- A proof for this theorem, supplied by Aristid Breitkreuz,
 -- is available at:
 -- http://projects.haskell.org/time-ng/gaps_and_overlaps.html
-
 -- | When a clock change moves the clock forward, local times that
 -- are between the wall clock time before the change and the wall
 -- clock time after the change cannot occur.
@@ -146,8 +138,7 @@ gapsVsOverlaps :: TimeZoneSeries -> LocalTime -> Ordering
 gapsVsOverlaps tzs lt = compareLengths gaps overlaps
   where
     (gaps, overlaps) = partition (uncurry (<)) relevantIntervals
-    relevantIntervals = takeWhile notTooEarly . dropWhile tooLate $
-                        gapsAndOverlaps tzs
+    relevantIntervals = takeWhile notTooEarly . dropWhile tooLate $ gapsAndOverlaps tzs
     tooLate (a, b) = a > lt && b > lt
     notTooEarly (a, b) = a > lt || b > lt
 
@@ -156,52 +147,45 @@ gapsVsOverlaps tzs lt = compareLengths gaps overlaps
 -- ltBefore < ltAfter the clock moves forward for that clock
 -- change, and otherwise backward.
 gapsAndOverlaps :: TimeZoneSeries -> [(LocalTime, LocalTime)]
-gapsAndOverlaps (TimeZoneSeries d cs) = zip
-      (zipWith utcToLocalTime (map snd (drop 1 cs) ++ [d]) (map fst cs))
-      (map (uncurry $ flip utcToLocalTime) cs)
+gapsAndOverlaps (TimeZoneSeries d cs) =
+    zip (zipWith utcToLocalTime (map snd (drop 1 cs) ++ [d]) (map fst cs)) (map (uncurry $ flip utcToLocalTime) cs)
 
 -- Fast lazy comparison of list lengths
 compareLengths :: [a] -> [a] -> Ordering
 compareLengths (_:xs) (_:ys) = compareLengths xs ys
-compareLengths (_:_ ) _      = GT
-compareLengths _      (_:_ ) = LT
-compareLengths _      _      = EQ
+compareLengths (_:_) _ = GT
+compareLengths _ (_:_) = LT
+compareLengths _ _ = EQ
 
 -- | A @ZoneSeriesTime@ represents a moment of time in the context of
 -- a particular timezone.
-data ZoneSeriesTime = ZoneSeriesTime {
-       zoneSeriesTimeToUTC :: UTCTime,
-       zoneSeriesTimeSeries :: TimeZoneSeries
-    }
-  deriving (Eq, Ord, Typeable)
+data ZoneSeriesTime = ZoneSeriesTime
+    { zoneSeriesTimeToUTC :: UTCTime
+    , zoneSeriesTimeSeries :: TimeZoneSeries
+    } deriving (Eq, Ord, Typeable)
 
 instance Show ZoneSeriesTime where
-  show tzs = show $ ZonedTime (zoneSeriesTimeToLocalTime tzs)
-                              (zoneSeriesTimeZone tzs)
+    show tzs = show $ ZonedTime (zoneSeriesTimeToLocalTime tzs) (zoneSeriesTimeZone tzs)
 
 instance Read ZoneSeriesTime where
     readsPrec n = map (first zonedTimeToZoneSeriesTime) . readsPrec n
 
 instance ParseTime ZoneSeriesTime where
-  substituteTimeSpecifier _ = timeSubstituteTimeSpecifier
-  parseTimeSpecifier _ = timeParseTimeSpecifier
-  buildTime locale = mapBuiltTime zonedTimeToZoneSeriesTime . buildTime locale
+    substituteTimeSpecifier _ = timeSubstituteTimeSpecifier
+    parseTimeSpecifier _ = timeParseTimeSpecifier
+    buildTime locale = mapBuiltTime zonedTimeToZoneSeriesTime . buildTime locale
 
 instance FormatTime ZoneSeriesTime where
-  formatCharacter =
-    fmap (mapFormatCharacter zoneSeriesTimeToZonedTime) .
-    formatCharacter
+    formatCharacter = fmap (mapFormatCharacter zoneSeriesTimeToZonedTime) . formatCharacter
 
 -- | The @ZonedTime@ of a @ZoneSeriesTime@.
 zoneSeriesTimeToZonedTime :: ZoneSeriesTime -> ZonedTime
-zoneSeriesTimeToZonedTime zst =
-  ZonedTime (zoneSeriesTimeToLocalTime zst) (zoneSeriesTimeZone zst)
+zoneSeriesTimeToZonedTime zst = ZonedTime (zoneSeriesTimeToLocalTime zst) (zoneSeriesTimeZone zst)
 
 -- | Use a trivial @TimeZoneSeries@ containing only the @TimeZone@
 -- of the @ZonedTime@, and use it to define a @ZoneSeriesTime@.
 zonedTimeToZoneSeriesTime :: ZonedTime -> ZoneSeriesTime
-zonedTimeToZoneSeriesTime (ZonedTime t tz) =
-  ZoneSeriesTime (localTimeToUTC tz t) (TimeZoneSeries tz [])
+zonedTimeToZoneSeriesTime (ZonedTime t tz) = ZoneSeriesTime (localTimeToUTC tz t) (TimeZoneSeries tz [])
 
 -- | The local time represented by a @ZoneSeriesTime@
 zoneSeriesTimeToLocalTime :: ZoneSeriesTime -> LocalTime
@@ -231,7 +215,6 @@ localTimeToZoneSeriesTime tzs lt = ZoneSeriesTime (localTimeToUTC' tzs lt) tzs
 -- possible interpretation is used. Use the functions
 -- 'isValidLocalTime' and 'isRedundantLocalTime' to detect these
 -- conditions.
-
 -- | Convert a UTC time to local time using the "TimeZone" that is in
 -- effect at that time in the timezone represented by TimeZoneSeries.
 utcToLocalTime' :: TimeZoneSeries -> UTCTime -> LocalTime
@@ -242,6 +225,5 @@ utcToLocalTime' tzs utc = utcToLocalTime (timeZoneFromSeries tzs utc) utc
 -- Local times that are invalid or redundant are treated as described above.
 localTimeToUTC' :: TimeZoneSeries -> LocalTime -> UTCTime
 localTimeToUTC' (TimeZoneSeries dfault changes) lt =
-  fromMaybe (localTimeToUTC dfault lt) . fmap snd . listToMaybe .
-  dropWhile (uncurry (>)) $
-  zip (map fst changes) (map (flip localTimeToUTC lt . snd) changes)
+    fromMaybe (localTimeToUTC dfault lt) . fmap snd . listToMaybe . dropWhile (uncurry (>)) $
+    zip (map fst changes) (map (flip localTimeToUTC lt . snd) changes)
