@@ -62,6 +62,7 @@ library
         Data.Time.Clock.TAI,
         Data.Time.Clock.LeapSeconds,
         Data.Time.LocalTime,
+        Data.Time.LocalTime.TimeZone.Series,
         Data.Time.Format,
         Data.Time.Format.Internal,
         Data.Time.Format.ISO8601,
