@@ -1,7 +1,8 @@
+cabal-version:  2.2
 name:           time
 version:        1.11.1.1
 stability:      stable
-license:        BSD3
+license:        BSD-3-Clause
 license-file:   LICENSE
 author:         Ashley Yakeley
 maintainer:     <ashley@semantic.org>
@@ -11,7 +12,6 @@ synopsis:       A time library
 description:    Time, clocks and calendars
 category:       Time
 build-type:     Configure
-cabal-version:  >=1.10
 tested-with:
     GHC == 8.0.2,
     GHC == 8.2.2,
@@ -34,7 +34,6 @@ extra-tmp-files:
     config.log
     config.status
     autom4te.cache
-    lib/include/HsTimeConfig.h
 
 source-repository head
     type:     git
@@ -77,33 +76,33 @@ library
         Data.Time
     other-modules:
         Data.Format
-        Data.Time.Calendar.Types,
-        Data.Time.Calendar.Private,
-        Data.Time.Calendar.Days,
-        Data.Time.Calendar.Gregorian,
-        Data.Time.Calendar.CalendarDiffDays,
-        Data.Time.Calendar.Week,
-        Data.Time.Calendar.JulianYearDay,
-        Data.Time.Clock.Internal.DiffTime,
-        Data.Time.Clock.Internal.AbsoluteTime,
-        Data.Time.Clock.Internal.NominalDiffTime,
-        Data.Time.Clock.Internal.POSIXTime,
-        Data.Time.Clock.Internal.UniversalTime,
-        Data.Time.Clock.Internal.SystemTime,
-        Data.Time.Clock.Internal.UTCTime,
-        Data.Time.Clock.Internal.CTimeval,
-        Data.Time.Clock.Internal.CTimespec,
-        Data.Time.Clock.Internal.UTCDiff,
-        Data.Time.LocalTime.Internal.TimeZone,
-        Data.Time.LocalTime.Internal.TimeOfDay,
+        Data.Time.Calendar.Types
+        Data.Time.Calendar.Private
+        Data.Time.Calendar.Days
+        Data.Time.Calendar.Gregorian
+        Data.Time.Calendar.CalendarDiffDays
+        Data.Time.Calendar.Week
+        Data.Time.Calendar.JulianYearDay
+        Data.Time.Clock.Internal.DiffTime
+        Data.Time.Clock.Internal.AbsoluteTime
+        Data.Time.Clock.Internal.NominalDiffTime
+        Data.Time.Clock.Internal.POSIXTime
+        Data.Time.Clock.Internal.UniversalTime
+        Data.Time.Clock.Internal.SystemTime
+        Data.Time.Clock.Internal.UTCTime
+        Data.Time.Clock.Internal.CTimeval
+        Data.Time.Clock.Internal.CTimespec
+        Data.Time.Clock.Internal.UTCDiff
+        Data.Time.LocalTime.Internal.TimeZone
+        Data.Time.LocalTime.Internal.TimeOfDay
         Data.Time.LocalTime.Internal.CalendarDiffTime
-        Data.Time.LocalTime.Internal.LocalTime,
-        Data.Time.LocalTime.Internal.ZonedTime,
-        Data.Time.Format.Parse,
-        Data.Time.Format.Locale,
-        Data.Time.Format.Format.Class,
-        Data.Time.Format.Format.Instances,
-        Data.Time.Format.Parse.Class,
+        Data.Time.LocalTime.Internal.LocalTime
+        Data.Time.LocalTime.Internal.ZonedTime
+        Data.Time.Format.Parse
+        Data.Time.Format.Locale
+        Data.Time.Format.Format.Class
+        Data.Time.Format.Format.Instances
+        Data.Time.Format.Parse.Class
         Data.Time.Format.Parse.Instances
     include-dirs: lib/include
     if os(windows)
@@ -112,7 +111,6 @@ library
     else
         install-includes:
             HsTime.h
-            HsTimeConfig.h
 
 test-suite ShowDefaultTZAbbreviations
     type: exitcode-stdio-1.0
