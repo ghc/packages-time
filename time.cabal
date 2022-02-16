@@ -105,12 +105,7 @@ library
         Data.Time.Format.Parse.Class
         Data.Time.Format.Parse.Instances
     include-dirs: lib/include
-    if os(windows)
-        install-includes:
-            HsTime.h
-    else
-        install-includes:
-            HsTime.h
+    install-includes: HsTime.h
 
 test-suite ShowDefaultTZAbbreviations
     type: exitcode-stdio-1.0
