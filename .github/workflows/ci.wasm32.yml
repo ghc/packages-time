@@ -1,6 +1,6 @@
 name: ci-wasm32
 
-on:
+on: []
   #push:
   #pull_request:
 
